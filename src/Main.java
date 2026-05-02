@@ -1,13 +1,26 @@
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-void main() {
-  //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-  // to see how IntelliJ IDEA suggests fixing it.
-  IO.println(String.format("Hello and welcome!"));
+import java.io.File;
 
-  for (int i = 1; i <= 5; i++) {
-    //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-    // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-    IO.println("i = " + i);
+public class Main {
+  public static void main(String[] args) {
+    Analisador analisador = new Analisador();
+    File pastaAmostra = new File("data/Amostra Enron");
+
+    System.out.println("Lendo base de dados...");
+
+    if (pastaAmostra.exists()) {
+      analisador.lerArquivosDaPasta(pastaAmostra);
+
+      System.out.println("\n=== RESULTADOS GERAIS ===");
+      System.out.println("Vértices: " + analisador.calcularTotalDeVertices());
+      System.out.println("Arestas: " + analisador.calcularTotalDeArestas());
+
+      // Requisitos do Integrante A (1.0 ponto)[cite: 1]
+      analisador.mostrarTop20Saida();
+      analisador.mostrarTop20Entrada();
+
+      System.out.println("\nPronto para as buscas (DFS/BFS) do Integrante B!");
+    } else {
+      System.out.println("Erro: Pasta não encontrada em " + pastaAmostra.getAbsolutePath());
+    }
   }
 }
