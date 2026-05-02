@@ -18,7 +18,7 @@ public class Main {
       analisador.mostrarTop20Saida();
       analisador.mostrarTop20Entrada();
 
-      
+
     } else {
       System.out.println("Erro: Pasta não encontrada em " + pastaAmostra.getAbsolutePath());
     }
