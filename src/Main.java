@@ -53,11 +53,22 @@ public class Main {
         List<String> caminhoEncontrado = meuGrafo.buscaProfundidade(emailX, emailY, indices);
 
         if (caminhoEncontrado != null) {
-            System.out.println("\nX " + emailX + " consegue alcançar Y" + emailY);
+            System.out.println("\n[DFS] X " + emailX + " consegue alcançar Y " + emailY);
             System.out.println("Caminho percorrido:");
             System.out.println(String.join(" -> ", caminhoEncontrado));
         } else {
-            System.out.println(" Não foi encontrado um caminho entre os e-mails informados.");
+            System.out.println("\n[DFS] Não foi encontrado um caminho entre os e-mails informados.");
+        }
+
+        // Teste de Busca em Largura (Requisito 4)
+        System.out.println("\n--- BUSCA EM LARGURA (BFS) ---");
+        List<String> caminhoLargura = meuGrafo.buscaLargura(emailX, emailY, indices);
+        if (caminhoLargura != null) {
+            System.out.println("X " + emailX + " consegue alcançar Y " + emailY);
+            System.out.println("Caminho percorrido (curto):");
+            System.out.println(String.join(" -> ", caminhoLargura));
+        } else {
+            System.out.println("Não foi encontrado um caminho entre os e-mails informados via BFS.");
         }
 
         leitor.close();

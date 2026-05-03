@@ -87,6 +87,50 @@ public class Grafo {
         return false;
     }
 
+    public List<String> buscaLargura(String emailOrigem, String emailDestino, GerenciadorIndices idx) {
+        int idOrigem = idx.getId(emailOrigem);
+        int idDestino = idx.getId(emailDestino);
+
+        if (idOrigem == idDestino) return Arrays.asList(rotulosVertices[idOrigem]);
+
+        Queue<Integer> fila = new LinkedList<>();
+        Map<Integer, Integer> antecessor = new HashMap<>();
+        Set<Integer> visitados = new HashSet<>();
+
+        fila.add(idOrigem);
+        visitados.add(idOrigem);
+
+        boolean encontrou = false;
+        while (!fila.isEmpty()) {
+            int atual = fila.poll();
+            if (atual == idDestino) {
+                encontrou = true;
+                break;
+            }
+
+            Aresta aresta = listaDeAdjacencias[atual];
+            while (aresta != null) {
+                if (!visitados.contains(aresta.verticeDestino)) {
+                    visitados.add(aresta.verticeDestino);
+                    antecessor.put(aresta.verticeDestino, atual);
+                    fila.add(aresta.verticeDestino);
+                }
+                aresta = aresta.proximaAresta;
+            }
+        }
+
+        if (encontrou) {
+            List<String> caminhoEmails = new LinkedList<>();
+            Integer passo = idDestino;
+            while (passo != null) {
+                caminhoEmails.add(0, rotulosVertices[passo]);
+                passo = antecessor.get(passo);
+            }
+            return caminhoEmails;
+        }
+        return null;
+    }
+
 
     public int getNumVertices() {
         int contador = 0;
