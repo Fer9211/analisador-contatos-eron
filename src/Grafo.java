@@ -131,6 +131,46 @@ public class Grafo {
         return null;
     }
 
+    public List<String> getNosDistanciaD(String emailRaiz, int distanciaAlvo, GerenciadorIndices idx) {
+        int idRaiz = idx.getId(emailRaiz);
+        if (idRaiz < 0 || idRaiz >= totalVertices || rotulosVertices[idRaiz] == null) return new ArrayList<>();
+
+        List<String> resultado = new ArrayList<>();
+        if (distanciaAlvo == 0) {
+            resultado.add(rotulosVertices[idRaiz]);
+            return resultado;
+        }
+
+        Queue<Integer> fila = new LinkedList<>();
+        int[] distancia = new int[totalVertices];
+        Arrays.fill(distancia, -1);
+
+        fila.add(idRaiz);
+        distancia[idRaiz] = 0;
+
+        while (!fila.isEmpty()) {
+            int atual = fila.poll();
+
+            if (distancia[atual] == distanciaAlvo) {
+                resultado.add(rotulosVertices[atual]);
+                continue; // Não precisa explorar vizinhos se já atingiu a distância D
+            }
+
+            if (distancia[atual] < distanciaAlvo) {
+                Aresta aresta = listaDeAdjacencias[atual];
+                while (aresta != null) {
+                    if (distancia[aresta.verticeDestino] == -1) {
+                        distancia[aresta.verticeDestino] = distancia[atual] + 1;
+                        fila.add(aresta.verticeDestino);
+                    }
+                    aresta = aresta.proximaAresta;
+                }
+            }
+        }
+
+        return resultado;
+    }
+
 
     public int getNumVertices() {
         int contador = 0;

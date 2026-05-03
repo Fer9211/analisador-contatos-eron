@@ -71,6 +71,29 @@ public class Main {
             System.out.println("Não foi encontrado um caminho entre os e-mails informados via BFS.");
         }
 
+        // Requisito 5: Nós a distância D
+        System.out.println("\n--- NÓS A DISTÂNCIA D ---");
+        System.out.print("Digite o e-mail de referência (N): ");
+        String emailN = leitor.nextLine().trim().toLowerCase();
+        System.out.print("Digite a distância (D): ");
+        int d = 0;
+        try {
+            d = Integer.parseInt(leitor.nextLine().trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Distância inválida.");
+        }
+
+        List<String> nosDistanciaD = meuGrafo.getNosDistanciaD(emailN, d, indices);
+        if (!nosDistanciaD.isEmpty()) {
+            System.out.println("Indivíduos a distância " + d + " de " + emailN + ":");
+            for (String email : nosDistanciaD) {
+                System.out.println("- " + email);
+            }
+            System.out.println("Total: " + nosDistanciaD.size());
+        } else {
+            System.out.println("Nenhum indivíduo encontrado a essa distância.");
+        }
+
         leitor.close();
     }
 
