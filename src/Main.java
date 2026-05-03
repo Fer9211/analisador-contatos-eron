@@ -1,5 +1,6 @@
 import java.io.*;
 import java.nio.file.*;
+import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
@@ -32,6 +33,12 @@ public class Main {
 
         meuGrafo.imprime_adjacencias();
 
+        System.out.println("---------------------------------------------");
+        System.out.println("N. de Vertices: " + meuGrafo.getNumVertices());
+        System.out.println("N. de Arestas: " + meuGrafo.getNumArestas());
+
+        meuGrafo.imprimirTop20Saida();
+        meuGrafo.imprimirTop20Entrada();
     }
 
     private static void processarConteudo(File arquivo, Grafo g, GerenciadorIndices idx) {
