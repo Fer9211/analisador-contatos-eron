@@ -87,63 +87,75 @@ public class Grafo {
         return false;
     }
 
+    // REQUISITO 4: Busca em Largura (BFS)
+    // A ideia aqui é achar o caminho mais curto de X pra Y
+    // Como a gente olha por "camadas" (vizinhos, dps vizinhos dos vizinhos), 
+    // o primeiro caminho que ele achar vai ser o com menos arestas.
     public List<String> buscaLargura(String emailOrigem, String emailDestino, GerenciadorIndices idx) {
         int idOrigem = idx.getId(emailOrigem);
         int idDestino = idx.getId(emailDestino);
 
+        // Se o cara quer ir pra ele msm, o caminho é só ele e ja era
         if (idOrigem == idDestino) return Arrays.asList(rotulosVertices[idOrigem]);
 
-        Queue<Integer> fila = new LinkedList<>();
-        Map<Integer, Integer> antecessor = new HashMap<>();
-        Set<Integer> visitados = new HashSet<>();
+        Queue<Integer> fila = new LinkedList<>(); // Fila pra controlar a ordem de visita (quem chega primeiro sai primeiro)
+        Map<Integer, Integer> antecessor = new HashMap<>(); // Pra gente saber de onde veio cada nó e dps conseguir voltar o caminho
+        Set<Integer> visitados = new HashSet<>(); // Pra n ficar dando volta em circulo no grafo
 
         fila.add(idOrigem);
         visitados.add(idOrigem);
 
         boolean encontrou = false;
         while (!fila.isEmpty()) {
-            int atual = fila.poll();
+            int atual = fila.poll(); // Tira o cara da vez da fila
+            
             if (atual == idDestino) {
-                encontrou = true;
+                encontrou = true; // Achamos o destino! Blz, pode parar de procurar
                 break;
             }
 
+            // Olha td mundo que o "atual" mandou e-mail
             Aresta aresta = listaDeAdjacencias[atual];
             while (aresta != null) {
                 if (!visitados.contains(aresta.verticeDestino)) {
                     visitados.add(aresta.verticeDestino);
-                    antecessor.put(aresta.verticeDestino, atual);
-                    fila.add(aresta.verticeDestino);
+                    antecessor.put(aresta.verticeDestino, atual); // Salva que chegamos no "destino" vindo do "atual"
+                    fila.add(aresta.verticeDestino); // Joga na fila pra olhar os vizinhos dele dps
                 }
                 aresta = aresta.proximaAresta;
             }
         }
 
+        // Se encontrou, a gente faz o caminho de volta usando o mapa de antecessores
         if (encontrou) {
             List<String> caminhoEmails = new LinkedList<>();
             Integer passo = idDestino;
             while (passo != null) {
-                caminhoEmails.add(0, rotulosVertices[passo]);
+                caminhoEmails.add(0, rotulosVertices[passo]); // Add no começo pra lista ficar na ordem certa
                 passo = antecessor.get(passo);
             }
             return caminhoEmails;
         }
-        return null;
+        return null; // Se chegou aqui, é pq n tem como chegar lá :(
     }
 
+    // REQUISITO 5: Achar quem tá a exatos D pulos de distância
+    // Basicamente um BFS tbm, mas a gente conta a distância de td mundo
     public List<String> getNosDistanciaD(String emailRaiz, int distanciaAlvo, GerenciadorIndices idx) {
         int idRaiz = idx.getId(emailRaiz);
         if (idRaiz < 0 || idRaiz >= totalVertices || rotulosVertices[idRaiz] == null) return new ArrayList<>();
 
         List<String> resultado = new ArrayList<>();
+        
+        // Distancia 0 é o próprio cara, né?
         if (distanciaAlvo == 0) {
             resultado.add(rotulosVertices[idRaiz]);
             return resultado;
         }
 
         Queue<Integer> fila = new LinkedList<>();
-        int[] distancia = new int[totalVertices];
-        Arrays.fill(distancia, -1);
+        int[] distancia = new int[totalVertices]; // Array pra guardar a distancia de cada um partindo do inicio
+        Arrays.fill(distancia, -1); // -1 significa que a gente ainda n visitou
 
         fila.add(idRaiz);
         distancia[idRaiz] = 0;
@@ -151,16 +163,18 @@ public class Grafo {
         while (!fila.isEmpty()) {
             int atual = fila.poll();
 
+            // Se o cara q saiu da fila tá na distancia que a gente quer, add na lista
             if (distancia[atual] == distanciaAlvo) {
                 resultado.add(rotulosVertices[atual]);
-                continue; // Não precisa explorar vizinhos se já atingiu a distância D
+                continue; // N precisa olhar os vizinhos dele pq eles estariam a D+1
             }
 
+            // Se ainda n chegou na distancia D, continua explorando
             if (distancia[atual] < distanciaAlvo) {
                 Aresta aresta = listaDeAdjacencias[atual];
                 while (aresta != null) {
-                    if (distancia[aresta.verticeDestino] == -1) {
-                        distancia[aresta.verticeDestino] = distancia[atual] + 1;
+                    if (distancia[aresta.verticeDestino] == -1) { // Se ainda n foi visitado
+                        distancia[aresta.verticeDestino] = distancia[atual] + 1; // Distancia do vizinho é a minha + 1
                         fila.add(aresta.verticeDestino);
                     }
                     aresta = aresta.proximaAresta;
