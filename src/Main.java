@@ -1,11 +1,10 @@
 import java.io.*;
 import java.nio.file.*;
-import java.util.Arrays;
+import java.util.*; // Importa Scanner, List, ArrayList e HashSet de uma vez
 
 public class Main {
     public static void main(String[] args) {
         // 1. Instancia as classes
-        // Verifique se o caminho da pasta está correto no seu computador
         File pasta = new File("data/Amostra Enron");
         if (!pasta.exists()) {
             System.out.println("ERRO: Pasta não encontrada. Verifique o caminho.");
@@ -16,6 +15,8 @@ public class Main {
         GerenciadorIndices indices = new GerenciadorIndices();
 
         Path caminhoBase = pasta.toPath();
+
+        System.out.println("Lendo arquivos... isso pode demorar um pouco.");
 
         try {
             // 2. Files.walk percorre todas as subpastas
@@ -28,10 +29,11 @@ public class Main {
             System.out.println("Erro ao percorrer arquivos: " + e.getMessage());
         }
 
-        // 3. Passa os rótulos coletados para o grafo e imprime
+        // 3. Configura rótulos e mostra estatísticas (Requisitos 1 e 2)
         meuGrafo.setRotulos(indices.getListaDeRotulos());
 
-        meuGrafo.imprime_adjacencias();
+        // Se quiser ver todas as conexões, descomente a linha abaixo:
+        // meuGrafo.imprime_adjacencias();
 
         System.out.println("---------------------------------------------");
         System.out.println("N. de Vertices: " + meuGrafo.getNumVertices());
@@ -39,6 +41,26 @@ public class Main {
 
         meuGrafo.imprimirTop20Saida();
         meuGrafo.imprimirTop20Entrada();
+
+//ESSE É PRA TESTAR O CAMINHO
+        Scanner leitor = new Scanner(System.in);
+        System.out.println("O caminho entre um e outro");
+        System.out.print("Digite o e-mail de origem (X): ");
+        String emailX = leitor.nextLine().trim().toLowerCase();
+        System.out.print("Digite o e-mail de destino (Y): ");
+        String emailY = leitor.nextLine().trim().toLowerCase();
+
+        List<String> caminhoEncontrado = meuGrafo.buscaProfundidade(emailX, emailY, indices);
+
+        if (caminhoEncontrado != null) {
+            System.out.println("\nX " + emailX + " consegue alcançar Y" + emailY);
+            System.out.println("Caminho percorrido:");
+            System.out.println(String.join(" -> ", caminhoEncontrado));
+        } else {
+            System.out.println(" Não foi encontrado um caminho entre os e-mails informados.");
+        }
+
+        leitor.close();
     }
 
     private static void processarConteudo(File arquivo, Grafo g, GerenciadorIndices idx) {
@@ -46,70 +68,36 @@ public class Main {
             String linha, de = null;
 
             while ((linha = br.readLine()) != null) {
-                // Captura o Remetente
                 if (linha.startsWith("From: ")) {
                     de = limparEmail(linha.substring(6));
                 }
-                // Captura o(s) Destinatário(s)
                 else if (linha.startsWith("To: ")) {
-                    // Só processa destinatários se já tivermos um remetente válido
                     if (de == null || !de.contains("@")) continue;
 
                     String conteudoTo = linha.substring(4);
-                    // Divide por vírgula ou ponto e vírgula para múltiplos e-mails
                     String[] partes = conteudoTo.split("[,;]");
 
                     for (String p : partes) {
                         String paraLimpo = limparEmail(p);
-                        // Validação crucial: só cria aresta se ambos forem e-mails (tiverem @)
                         if (!paraLimpo.isEmpty() && paraLimpo.contains("@")) {
                             g.cria_ou_atualiza_adjacencia(idx.getId(de), idx.getId(paraLimpo));
                         }
                     }
                 }
-
-                // Otimização: Se encontrar uma linha vazia, os cabeçalhos acabaram
                 if (linha.trim().isEmpty()) break;
             }
         } catch (Exception e) {
-            // Ignora erros de arquivos corrompidos para não travar a execução
+            // Ignora erros
         }
     }
 
     private static String limparEmail(String texto) {
         if (texto == null) return "";
-
         texto = texto.trim().toLowerCase();
-
-        // 1. Remove data/horário (on 10/11/2000...)
-        if (texto.contains(" on ")) {
-            texto = texto.split(" on ")[0];
-        }
-
-        // 2. Trata formato Nome <email@dominio.com>
         if (texto.contains("<") && texto.contains(">")) {
             texto = texto.substring(texto.indexOf("<") + 1, texto.indexOf(">"));
         }
-
-        // 3. Trata formato [mailto:email@dominio.com]
-        if (texto.contains("[mailto:")) {
-            int inicio = texto.indexOf("[mailto:") + 8;
-            int fim = texto.indexOf("]", inicio);
-            if (fim > inicio) {
-                texto = texto.substring(inicio, fim);
-            }
-        }
-
-        // 4. Se ainda houver espaços (ex: "nome email@dominio.com"), pega a última parte
-        if (texto.contains(" ")) {
-            String[] partes = texto.split(" ");
-            texto = partes[partes.length - 1];
-        }
-
-        // 5. Limpeza final de caracteres residuais
         texto = texto.replaceAll("[;>,\\s\\[\\]]", "").trim();
-
-        // Só retorna se parecer um e-mail (tiver @), caso contrário retorna vazio
         return texto.contains("@") ? texto : "";
     }
 }
