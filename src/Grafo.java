@@ -5,14 +5,15 @@ public class Grafo {
     private String[] rotulosVertices;
     public int totalVertices;
 
-    public Grafo(int totalVerticies){
+    public Grafo(int totalVerticies) {
         this.totalVertices = totalVerticies;
         this.listaDeAdjacencias = new Aresta[totalVerticies];
         this.rotulosVertices = new String[totalVerticies];
     }
 
     public void cria_ou_atualiza_adjacencia(int verticeOrigem, int verticeDestino) {
-        if (verticeOrigem < 0 || verticeOrigem >= totalVertices || verticeDestino < 0 || verticeDestino >= totalVertices) return;
+        if (verticeOrigem < 0 || verticeOrigem >= totalVertices || verticeDestino < 0 || verticeDestino >= totalVertices)
+            return;
 
         Aresta atual = listaDeAdjacencias[verticeOrigem];
         while (atual != null) {
@@ -26,6 +27,7 @@ public class Grafo {
         novaAresta.proximaAresta = listaDeAdjacencias[verticeOrigem];
         listaDeAdjacencias[verticeOrigem] = novaAresta;
     }
+
     public void imprime_adjacencias() {
         for (int vertice = 0; vertice < totalVertices; vertice++) {
             if (rotulosVertices[vertice] == null) continue;
@@ -40,28 +42,60 @@ public class Grafo {
             System.out.println();
         }
     }
+
     public void setRotulos(String[] nomesColetados) {
         this.rotulosVertices = nomesColetados;
     }
 
-    // --- MÉTODOS DO ALUNO A ---
+//No 3 ele basicamente quer ir de x pra y e que mostre o caminho
+    public List<String> buscaProfundidade(String emailOrigem, String emailDestino, GerenciadorIndices idx) {
+        //esse é pra passar do texto email pra numero id
+        int idOrigem = idx.getId(emailOrigem);
+        int idDestino = idx.getId(emailDestino);
 
-    /**
-     * Retorna o número de e-mails (vértices) que foram realmente preenchidos.
-     */
+        Set<Integer> visitados = new HashSet<>();//marcar quem ja visitou
+        //ai a lista pra guardar a sequencia
+        List<Integer> caminhoIds = new ArrayList<>();
+
+        if (dfsRecursivo(idOrigem, idDestino, visitados, caminhoIds)) {
+            List<String> caminhoEmails = new ArrayList<>();//se der certo cria uma lista de strings, no caso os emails
+            for (int id : caminhoIds) {
+                caminhoEmails.add(rotulosVertices[id]);//traduzir os ids pra mostrar
+            }
+            return caminhoEmails;
+        }
+        return null;
+    }
+
+    private boolean dfsRecursivo(int atual, int destino, Set<Integer> visitados, List<Integer> caminho) {
+        visitados.add(atual);
+        caminho.add(atual);
+
+        if (atual == destino) return true;
+
+        Aresta aresta = listaDeAdjacencias[atual];
+        while (aresta != null) {
+            if (!visitados.contains(aresta.verticeDestino)) {//se ainda n foi visitado
+                if (dfsRecursivo(aresta.verticeDestino, destino, visitados, caminho)) {//tenta achar
+                    return true;
+                }
+            }
+            aresta = aresta.proximaAresta;//se não der certo por aquele caminho, só passa pra proxima aresta da lista
+        }
+
+        caminho.remove(caminho.size() - 1);// aqui se ele explorou td e n achou o destino,da pra tirar o nó do caminho
+        return false;
+    }
+
+
     public int getNumVertices() {
         int contador = 0;
         for (int i = 0; i < totalVertices; i++) {
-            if (rotulosVertices[i] != null) {
-                contador++;
-            }
+            if (rotulosVertices[i] != null) contador++;
         }
         return contador;
     }
 
-    /**
-     * Conta todas as conexões (arestas) percorrendo as listas encadeadas.
-     */
     public int getNumArestas() {
         int total = 0;
         for (int i = 0; i < totalVertices; i++) {
@@ -74,15 +108,10 @@ public class Grafo {
         return total;
     }
 
-    /**
-     * Calcula quem mais enviou e-mails (Grau de Saída).
-     */
     public void imprimirTop20Saida() {
         List<Map.Entry<String, Integer>> listaRanking = new ArrayList<>();
-
         for (int i = 0; i < totalVertices; i++) {
             if (rotulosVertices[i] == null) continue;
-
             int grau = 0;
             Aresta atual = listaDeAdjacencias[i];
             while (atual != null) {
@@ -91,23 +120,15 @@ public class Grafo {
             }
             listaRanking.add(new AbstractMap.SimpleEntry<>(rotulosVertices[i], grau));
         }
-
-        // Ordena do maior para o menor[cite: 1]
         listaRanking.sort((a, b) -> b.getValue().compareTo(a.getValue()));
-
         System.out.println("\n--- TOP 20 GRAU DE SAÍDA ---");
         for (int i = 0; i < Math.min(20, listaRanking.size()); i++) {
             System.out.println((i + 1) + ". " + listaRanking.get(i).getKey() + " | Valor: " + listaRanking.get(i).getValue());
         }
     }
 
-    /**
-     * Calcula quem mais recebeu e-mails (Grau de Entrada)[cite: 1].
-     */
     public void imprimirTop20Entrada() {
         int[] contagemEntrada = new int[totalVertices];
-
-        // Varre o grafo inteiro contando quem é o destino das flechas[cite: 1]
         for (int i = 0; i < totalVertices; i++) {
             Aresta atual = listaDeAdjacencias[i];
             while (atual != null) {
@@ -115,21 +136,15 @@ public class Grafo {
                 atual = atual.proximaAresta;
             }
         }
-
         List<Map.Entry<String, Integer>> listaRanking = new ArrayList<>();
         for (int i = 0; i < totalVertices; i++) {
             if (rotulosVertices[i] == null) continue;
             listaRanking.add(new AbstractMap.SimpleEntry<>(rotulosVertices[i], contagemEntrada[i]));
         }
-
         listaRanking.sort((a, b) -> b.getValue().compareTo(a.getValue()));
-
         System.out.println("\n--- TOP 20 GRAU DE ENTRADA ---");
         for (int i = 0; i < Math.min(20, listaRanking.size()); i++) {
             System.out.println((i + 1) + ". " + listaRanking.get(i).getKey() + " | Valor: " + listaRanking.get(i).getValue());
         }
     }
 }
-
-
-
