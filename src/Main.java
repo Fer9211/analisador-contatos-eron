@@ -93,9 +93,12 @@ public class Main {
         } else {
             System.out.println("Nenhum indivíduo encontrado a essa distância.");
         }
-
+      
+        System.out.println("\n--- CAMINHO CRÍTICO (DEPENDÊNCIA) ---");
+        meuGrafo.caminhoCritico(emailX, emailY, indices);
         leitor.close();
     }
+
 
     private static void processarConteudo(File arquivo, Grafo g, GerenciadorIndices idx) {
         try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
@@ -134,4 +137,5 @@ public class Main {
         texto = texto.replaceAll("[;>,\\s\\[\\]]", "").trim();
         return texto.contains("@") ? texto : "";
     }
+
 }
