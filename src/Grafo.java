@@ -185,6 +185,93 @@ public class Grafo {
         return resultado;
     }
 
+    public void caminhoCritico(String emailA, String emailC, GerenciadorIndices idx) {
+        //string pra id
+        int idA = idx.getId(emailA);
+        int idC = idx.getId(emailC);
+
+        //inicialização
+        double[] distancias = new double[totalVertices]; //custo inverso acumulado
+        int[] antecessores = new int[totalVertices];    //pai de cada nó q passa
+        boolean[] visitados = new boolean[totalVertices]; //finalizados pra evitar ciclos
+
+        //distâncias são infinito e antecessores como vazio (-1).
+        Arrays.fill(distancias, Double.MAX_VALUE);
+        Arrays.fill(antecessores, -1);
+
+        // A distância para o ponto de partida é precisa ser 0.
+        distancias[idA] = 0;
+
+        //visita os vértices um por um.
+        for (int i = 0; i < totalVertices; i++) {
+            int u = -1;
+            double min = Double.MAX_VALUE;
+
+            //busca o nó não visitado que tem a menor distância acumulada no momento.
+            for (int v = 0; v < totalVertices; v++) {
+                if (!visitados[v] && distancias[v] < min && rotulosVertices[v] != null) {
+                    min = distancias[v];
+                    u = v;
+                }
+            }
+
+            //se não achar mais ninguém ou chegar no destino
+            if (u == -1 || u == idC) break;
+
+            //marca o nó como visitado para nunca mais voltar nel
+            visitados[u] = true;
+
+            //relaxamento
+            Aresta a = listaDeAdjacencias[u];
+            while (a != null) {
+                //o custo usando o inverso do peso da aresta 1 / frequência
+                double pesoInverso = 1.0 / a.peso;
+
+                //se o caminho passando por "u" for menor inverso do que o que o vizinho já tinha
+                if (!visitados[a.verticeDestino] && distancias[u] + pesoInverso < distancias[a.verticeDestino]) {
+                    //atualiza a nova menor distância inversa do vizinho.
+                    distancias[a.verticeDestino] = distancias[u] + pesoInverso;
+                    //grava que, para chegar nesse vizinho, o melhor caminho agora vem de "u".
+                    antecessores[a.verticeDestino] = u;
+                }
+                a = a.proximaAresta; //pula para a próxima conexão do remetente.
+            }
+        }
+
+        //se o destino não tem antecessor, ele é inalcançável.
+        if (antecessores[idC] == -1) {
+            System.out.println("\n[Dijkstra] Não há caminho crítico entre " + emailA + " e " + emailC);
+        } else {
+            System.out.println("\n--- REQUISITO 6: CAMINHO CRÍTICO ---");
+            List<String> caminho = new ArrayList<>();
+            double dependeciaTotal = 0; //soma as frequências reais das arestas
+            int atual = idC;
+
+            //faz o caminho de volta (do destino para a origem) usando os antecessores.
+            while (atual != -1) {
+                caminho.add(0, rotulosVertices[atual]); // Adiciona o e-mail no início da lista.
+                int pai = antecessores[atual];
+
+                if (pai != -1) {
+                    // Procura o peso ORIGINAL (frequência) da aresta para calcular a dependência total
+                    Aresta aux = listaDeAdjacencias[pai];
+                    while(aux != null) {
+                        if(aux.verticeDestino == atual) {
+                            dependeciaTotal += aux.peso; // Soma a frequência real (não a inversa).
+                            break;
+                        }
+                        aux = aux.proximaAresta;
+                    }
+                }
+                atual = pai; // Sobe um nível no caminho.
+            }
+
+            // Exibe o caminho final e a soma total das dependências (frequências)
+            System.out.println("Caminho Crítico: " + String.join(" -> ", caminho));
+            System.out.println("Dependência Acumulada (Soma das Frequências): " + dependeciaTotal);
+        }
+    }
+
 
     public int getNumVertices() {
         int contador = 0;
